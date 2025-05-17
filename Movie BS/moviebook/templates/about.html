@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - BookMyFilm</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-image: url('https://e1.pxfuel.com/desktop-wallpaper/544/126/desktop-wallpaper-related-keywords-suggestions-for-movie-theater-backgrounds-1215x734-for-your-mobile-tablet-movie-screen.jpg');
+            background-size: cover;
+            background-position: center;
+            color: #fff; /* White text for better contrast on dark background */
+            line-height: 1.7;
+            min-height: 100vh; /* Ensure full viewport height */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px; /* Add some overall padding */
+        }
+
+        header {
+            background-color: rgba(0, 0, 0, 0.7); /* Slightly more opaque */
+            color: #fff;
+            padding: 30px 0;
+            text-align: center;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            width: 90%; /* Adjust width */
+            max-width: 900px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        header h1 {
+            font-size: 36px;
+            margin-bottom: 15px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        nav a {
+            color: #eee;
+            text-decoration: none;
+            margin: 0 15px;
+            font-size: 18px;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        nav a:hover {
+            color: #ffc107; /* Highlight color */
+        }
+
+        .container {
+            max-width: 800px;
+            padding: 40px;
+            background-color: rgba(0, 0, 0, 0.7); /* Slightly more opaque */
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            text-align: left;
+            width: 90%; /* Adjust width */
+        }
+
+        h2 {
+            font-size: 28px;
+            color: #ffc107; /* Consistent highlight color */
+            margin-top: 30px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ffc107;
+            padding-bottom: 10px;
+            font-weight: 600;
+        }
+
+        h2:first-of-type {
+            margin-top: 0;
+        }
+
+        p {
+            margin-bottom: 25px;
+            font-size: 17px;
+            line-height: 1.8;
+            opacity: 0.9;
+        }
+
+        ul {
+            list-style-type: disc;
+            padding-left: 30px;
+            margin-bottom: 25px;
+        }
+
+        ul li {
+            font-size: 17px;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            header {
+                padding: 20px 0;
+                width: 95%;
+            }
+
+            header h1 {
+                font-size: 30px;
+            }
+
+            nav a {
+                font-size: 16px;
+                margin: 0 10px;
+            }
+
+            .container {
+                padding: 30px;
+                width: 95%;
+            }
+
+            h2 {
+                font-size: 24px;
+                margin-top: 25px;
+                margin-bottom: 15px;
+            }
+
+            p, ul li {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>About Us</h1>
+        <nav>
+            <a href="{% url 'home' %}">BACK</a>
+            <a href="{% url 'contact' %}">CONTACT</a>
+            <a href="{% url 'login' %}">LOGIN</a>
+        </nav>
+    </header>
+    <div class="container">
+        <h2>Welcome to BookMyFilm</h2>
+        <p>
+            At BookMyFilm, we believe in the immersive power of cinema and its ability to transport us to different worlds. Our mission is to make the experience of watching movies effortless, enjoyable, and accessible to everyone. We provide a seamless online platform for discovering and booking movie tickets at your preferred theaters, ensuring you never miss the magic on the big screen.
+        </p>
+        <h2>Our Story</h2>
+        <p>
+            BookMyFilm was founded in 2023 by a collective of dedicated film enthusiasts who recognized the need for a more intuitive and user-friendly way to purchase movie tickets. Driven by our passion for storytelling through film, we set out to create a platform that enhances your journey from discovering a movie to settling into your seat.
+        </p>
+        <h2>Our Commitment</h2>
+        <ul>
+            <li><strong>Curated Listings:</strong> Browse the latest and most anticipated movie releases with comprehensive information.</li>
+            <li><strong>Effortless Booking:</strong> Secure your tickets online in just a few clicks, saving you time and hassle.</li>
+            <li><strong>Exclusive Perks:</strong> Gain access to special deals, discounts, and early screenings for our valued users.</li>
+            <li><strong>Intuitive Interface:</strong> Navigate our platform with ease, whether you're on your computer or mobile device.</li>
+        </ul>
+        <h2>Join Our Community</h2>
+        <p>
+            Become a part of the BookMyFilm community and share your passion for cinema with fellow movie lovers. Stay connected with us on social media for the latest updates on releases, promotions, and exciting news from the world of film. We're excited to be a part of your movie-going experience!
+        </p>
+    </div>
+</body>
+</html>

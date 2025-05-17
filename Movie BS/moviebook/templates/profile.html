@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Bookings - Profile</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-image: url('https://source.unsplash.com/1920x1080/?movie,theater,lights');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: background-image 0.5s ease-in-out;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 50px auto;
+            background: rgba(255, 255, 255, 0.97);
+            padding: 50px;
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+            flex-grow: 1;
+            backdrop-filter: blur(12px);
+            animation: fadeIn 0.9s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(25px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 {
+            text-align: left;
+            color: #2c3e50;
+            margin-bottom: 40px;
+            font-weight: 700;
+            font-size: 32px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        h2 i {
+            margin-right: 15px;
+            color: #4285f4;
+        }
+
+        .message {
+            margin-bottom: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            font-size: 16px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.12);
+            animation: slideInLeft 0.6s ease-out;
+        }
+
+        @keyframes slideInLeft {
+            from { transform: translateX(-25px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .message.success {
+            background-color: #e6f7ec;
+            color: #27ae60;
+            border: 1px solid #a5d6a7;
+        }
+
+        .message.error {
+            background-color: #fce8e8;
+            color: #e74c3c;
+            border: 1px solid #ef9a9a;
+        }
+
+        .booking-item {
+            border: 1px solid #e0e0e0;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            padding: 30px;
+            display: flex;
+            align-items: flex-start;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            background: rgba(255, 255, 255, 0.95);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .booking-item:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.18);
+        }
+
+        .movie-info {
+            flex: 1.5;
+            display: flex;
+            align-items: center;
+        }
+
+        .movie-poster {
+            width: 120px;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-right: 25px;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .movie-poster:hover {
+            transform: scale(1.04);
+        }
+
+        .details {
+            flex: 2.5;
+        }
+
+        .details p {
+            margin: 8px 0;
+            font-size: 16px;
+            color: #4a4a4a;
+            line-height: 1.6;
+        }
+
+        .details p strong {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .details p span {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-right: 5px;
+        }
+
+        .actions {
+            flex: 1;
+            text-align: right;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            font-size: 15px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            color: white;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .btn i {
+            margin-right: 8px;
+        }
+
+        .btn-cancel {
+            background-color: #e74c3c;
+        }
+
+        .btn-cancel:hover {
+            background-color: #c0392b;
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-transfer {
+            background-color: #27ae60;
+        }
+
+        .btn-transfer:hover {
+            background-color: #229954;
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .transfer-form {
+            display: flex;
+            gap: 12px;
+            margin-top: 18px;
+        }
+
+        .transfer-form input {
+            padding: 10px 16px;
+            flex: 1;
+            border: 1px solid #bdc3c7;
+            border-radius: 10px;
+            font-size: 15px;
+        }
+
+        .transfer-form button {
+            padding: 10px 18px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 15px;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .transfer-form button i {
+            margin-right: 8px;
+        }
+
+        .transfer-form button:hover {
+            background-color: #2980b9;
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .back-to-home {
+            text-align: center;
+            margin-top: 40px;
+            animation: pulse 2s infinite ease-in-out;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.04); }
+            100% { transform: scale(1); }
+        }
+
+        .back-to-home a {
+            padding: 16px 28px;
+            background-color: #4285f4;
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-size: 17px;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .back-to-home a i {
+            margin-right: 8px;
+        }
+
+        .back-to-home a:hover {
+            background-color: #3367d6;
+            transform: scale(1.04);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2><i class="fas fa-ticket-alt"></i> My Bookings</h2>
+        {% if messages %}
+            {% for message in messages %}
+                <div class="message {{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+        {% if bookings %}
+            {% for booking in bookings %}
+                <div class="booking-item">
+                    <div class="movie-info">
+                        <img src="{{ booking.show_time.movie.poster.url }}" alt="Movie Poster" class="movie-poster">
+                        <div class="details">
+                            <p><strong>{{ booking.show_time.movie.title }}</strong></p>
+                            <p><span>Theatre:</span> {{ booking.show_time.theatre.name }}</p>
+                            <p><span>Date:</span> {{ booking.show_time.date }}</p>
+                            <p><span>Time:</span> {{ booking.show_time.time }}</p>
+                            <p><span>Seats:</span> {% for seat in booking.booked_seats %}{{ seat.row }}{{ seat.number }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+                            <p><span>Total:</span> ₹{{ booking.total_price }}</p>
+                            <p><span>Payment ID:</span> {{ booking.payment_id }}</p>
+                            <p><span>Status:</span> {{ booking.status }}</p>
+                            {% if booking.selected_snacks.all %}
+                                <p><span>Snacks:</span> {% for snack in booking.selected_snacks.all %}{{ snack.snack.name }} x {{ snack.quantity }} (₹{{ snack.get_total_price }}){% if not forloop.last %}, {% endif %}{% endfor %}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="actions">
+                        {% if booking.status == "Booked" or booking.status == "Transferred" %}
+                            <form method="POST" action="{% url 'cancel_booking' booking.id %}" onsubmit="confirmCancellation(event, this)">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-cancel"><i class="fas fa-times"></i> Cancel</button>
+                            </form>
+                        {% else %}
+                            <p style="color: #757575;">{{ booking.status }}</p>
+                        {% endif %}
+                        {% if booking.status == "Booked" %}
+                            <form method="POST" class="transfer-form" action="{% url 'transfer_ticket' booking.id %}" onsubmit="confirmTransfer(event, this)">
+                                {% csrf_token %}
+                                <input type="text" name="transfer_to" placeholder="User/Email" required>
+                                <button type="submit" class="btn btn-transfer"><i class="fas fa-arrow-right"></i> Transfer</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p style="text-align: center; font-size: 19px; color: #757575;">No bookings found.</p>
+        {% endif %}
+        <div class="back-to-home">
+            <a href="{% url 'home' %}"><i class="fas fa-home"></i> Back to Home</a>
+        </div>
+    </div>
+    <script>
+        function confirmCancellation(event, formElement) {
+            event.preventDefault();
+            if (confirm("Are you sure you want to cancel this booking? This action cannot be undone.")) {
+                formElement.submit();
+            }
+        }
+        function confirmTransfer(event, formElement) {
+            event.preventDefault();
+            if (confirm("Are you sure you want to transfer this ticket? This action cannot be undone.")) {
+                formElement.submit();
+            }
+        }
+    </script>
+</body>
+</html>

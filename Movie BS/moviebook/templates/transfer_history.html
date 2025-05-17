@@ -1,0 +1,74 @@
+<!-- transfer_history.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Transfer History</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        .container {
+            margin-top: 50px;
+        }
+        .card {
+            margin-bottom: 20px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .card-header {
+            background-color: #6f42c1;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+            border-top-left-radius: 15px;
+            border-top-right-radius: 15px;
+        }
+        .back-btn {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-center w-100">🎟️ Transfer History</h2>
+        <a href="{% url 'profile_view' %}" class="btn btn-secondary back-btn">← Back to Profile</a>
+    </div>
+
+    {% if transferred_bookings %}
+        {% for booking in transferred_bookings %}
+            <div class="card">
+                <div class="card-header">
+                    {{ booking.show_time.movie.title }} at {{ booking.show_time.theatre.name }}
+                </div>
+                <div class="card-body">
+                    <p><strong>Date:</strong> {{ booking.show_time.date }}</p>
+                    <p><strong>Time:</strong> {{ booking.show_time.time }}</p>
+                    <p><strong>Seats:</strong> {{ booking.seats|join:", " }}</p>
+
+                    {% if booking.selected_snacks.all %}
+                        <p><strong>Snacks:</strong>
+                            <ul>
+                                {% for snack in booking.selected_snacks.all %}
+                                    <li>{{ snack.snack.name }} × {{ snack.quantity }}</li>
+                                {% endfor %}
+                            </ul>
+                        </p>
+                    {% endif %}
+
+                    <p><strong>Transferred From:</strong> {{ booking.user.username }}</p>
+                    <p><strong>Transfer Time:</strong> {{ booking.transfer_time|date:"M d, Y H:i A" }}</p>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="alert alert-info text-center">
+            No tickets have been transferred to you yet.
+        </div>
+    {% endif %}
+</div>
+</body>
+</html>

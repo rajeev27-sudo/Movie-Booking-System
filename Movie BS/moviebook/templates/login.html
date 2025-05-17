@@ -1,0 +1,138 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <style>
+    /* General Styles */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(to bottom right, #1e3c72, #2a5298);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: url("{% static 'img/bg.jpg' %}") no-repeat center center fixed;
+      background-size: cover;
+    }
+
+    .wrapper {
+      width: 360px;
+      padding: 20px 30px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+      text-align: center;
+    }
+
+    h2 {
+      font-size: 28px;
+      margin-bottom: 20px;
+      color: #2a5298;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+    }
+
+    .input-field {
+      margin-bottom: 20px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .input-field input {
+      width: 100%;
+      padding: 10px 15px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      transition: 0.3s ease;
+    }
+
+    .input-field input:focus {
+      border-color: #2a5298;
+      outline: none;
+      box-shadow: 0 0 8px rgba(42, 82, 152, 0.3);
+    }
+
+    .input-field label {
+      font-size: 12px;
+      color: #666;
+      margin-top: 5px;
+      text-align: left;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px 15px;
+      background: #2a5298;
+      color: #fff;
+      font-size: 16px;
+      font-weight: bold;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
+
+    button:hover {
+      background: #1e3c72;
+    }
+
+    .register {
+      margin-top: 20px;
+      font-size: 14px;
+      color: #555;
+    }
+
+    .register a {
+      color: #2a5298;
+      font-weight: bold;
+      text-decoration: none;
+    }
+
+    .register a:hover {
+      text-decoration: underline;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 400px) {
+      .wrapper {
+        width: 90%;
+        padding: 15px 20px;
+      }
+
+      h2 {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <form method="post" action="">
+      {% csrf_token %}
+      <h2>Login</h2>
+      <div class="input-field">
+        <input type="text" name="username" id="username" placeholder="Enter your username" required>
+        <label>Enter your username</label>
+      </div>
+      <div class="input-field">
+        <input type="password" name="password" id="password" placeholder="Enter your password" required>
+        <label>Enter your password</label>
+      </div>
+      <button type="submit">Log In</button>
+      <div class="register">
+        <p>Don't have an account? <a href="register">Register</a></p>
+      </div>
+    </form>
+  </div>
+</body>
+</html>

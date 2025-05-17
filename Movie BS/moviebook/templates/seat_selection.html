@@ -1,0 +1,215 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seat Booking - {{ showtime.movie.title }}</title>
+    <link rel="stylesheet" href="{% static 'css/style1.css' %}">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: url("{% static 'img/bg.jpeg' %}") no-repeat center center fixed;
+            background-size: cover;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: white;
+            text-align: center;
+        }
+        
+        .container {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            width: 90%;
+            max-width: 700px;
+        }
+
+        h1 {
+            font-size: 26px;
+            margin-bottom: 15px;
+        }
+
+        .screen {
+            width: 100%;
+            height: 50px;
+            background: linear-gradient(to bottom, #fff, #ccc);
+            color: black;
+            font-weight: bold;
+            line-height: 50px;
+            margin: 20px 0;
+            border-radius: 10px;
+        }
+
+        .seat-grid {
+            display: grid;
+            grid-template-columns: repeat(10, 40px);
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .seat {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            cursor: pointer;
+            background-color: #2ecc71;
+            color: white;
+            font-weight: bold;
+            line-height: 40px;
+            transition: 0.2s;
+        }
+
+        .seat.booked {
+            background-color: #e74c3c;
+            cursor: not-allowed;
+        }
+
+        .seat.selected {
+            background-color: #f39c12;
+        }
+
+        .seat:hover {
+            transform: scale(1.1);
+        }
+
+        .info-container {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            background: #d32f2f;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            border-radius: 8px;
+            margin-top: 20px;
+            transition: 0.3s;
+        }
+
+        .btn:hover {
+            background: #b71c1c;
+            transform: scale(1.05);
+        }
+
+        .seat-price-info {
+            background-color: #ffffff;
+            color: black;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: bold;
+            display: inline-block;
+            box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.2);
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Select Seats for {{ showtime.movie.title }} - {{ showtime.time }}</h1>
+        <div class="theater-info">
+            Theatre: <span id="theatre-name">{{ showtime.theatre.name }}</span>
+        </div><br>
+
+        <div class="seat-price-info">
+            Seat Price: <span id="seat-price-display">{{ seats.0.price }}</span>
+        </div>
+        <br>
+
+        <label for="numSeats">Number of Seats:</label>
+        <select id="numSeats" onchange="updateSeatSelection()">
+            {% for i in seat_range %}
+                <option value="{{ i }}">{{ i }}</option>
+            {% endfor %}
+        </select>
+
+        <div class="screen">SCREEN</div>
+
+        <div class="seat-grid">
+            {% for seat in seats %}
+                <div class="seat {% if seat.is_booked %}booked{% else %}available{% endif %}"
+                     id="seat-{{ seat.id }}"
+                     data-seat-id="{{ seat.id }}"
+                     data-seat-label="{{ seat.row }}{{ seat.number }}"
+                     data-seat-price="{{ seat.price }}"
+                     onclick="selectSeat(this)">
+                    {{ seat.row }}{{ seat.number }}
+                </div>
+            {% empty %}
+                <p>No seats available for this showtime.</p>
+            {% endfor %}
+        </div>
+
+        <div class="info-container">
+            <p>You have selected <span id="selected-count">0</span> seats.</p>
+            <p>Total Price: <span id="total-price">₹0</span></p>
+            <button class="btn" onclick="proceedToPayment()">Proceed </button>
+        </div>
+    </div>
+
+    <form id="booking-form" method="post">
+        {% csrf_token %}
+        <input type="hidden" id="selected-seats" name="selected_seats">
+    </form>
+
+    <script>
+        let selectedSeats = [];
+        let maxSeats = 1;
+
+        function updateSeatSelection() {
+            maxSeats = parseInt(document.getElementById("numSeats").value);
+            selectedSeats = [];
+            document.querySelectorAll(".seat.selected").forEach(seat => seat.classList.remove("selected"));
+            document.getElementById("selected-count").innerText = selectedSeats.length;
+            updateTotalPrice();
+        }
+
+        function selectSeat(element) {
+            if (!element.classList.contains("booked")) {
+                const seatId = element.dataset.seatId;  // Store seat ID instead of label
+                const seatPrice = parseInt(element.dataset.seatPrice);
+
+                if (selectedSeats.includes(seatId)) {
+                    element.classList.remove("selected");
+                    selectedSeats = selectedSeats.filter(id => id !== seatId);
+                } else {
+                    if (selectedSeats.length < maxSeats) {
+                        element.classList.add("selected");
+                        selectedSeats.push(seatId);
+                    } else {
+                        alert("You can only select " + maxSeats + " seats.");
+                    }
+                }
+
+                document.getElementById("selected-count").innerText = selectedSeats.length;
+                updateTotalPrice();
+            }
+        }
+
+        function updateTotalPrice() {
+            let total = 0;
+            document.querySelectorAll(".seat.selected").forEach(seat => {
+                total += parseInt(seat.dataset.seatPrice);
+            });
+            document.getElementById("total-price").innerText = `₹${total}`;
+        }
+
+        function proceedToPayment() {
+            if (selectedSeats.length > 0) {
+                document.getElementById("selected-seats").value = selectedSeats.join(",");
+                document.getElementById("booking-form").submit();
+            } else {
+                alert("Please select at least one seat.");
+            }
+        }
+    </script>
+</body>
+</html>

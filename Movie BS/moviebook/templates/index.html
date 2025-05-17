@@ -1,0 +1,223 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Booking System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #141419;
+            color: #fff;
+            margin: 0;
+        }
+
+        header {
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
+        }
+
+        header .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #f44336;
+        }
+
+        nav a {
+            color: #fff;
+            text-decoration: none;
+            margin: 0 15px;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            cursor: pointer;
+        }
+
+        nav a:hover {
+            color: #f44336;
+        }
+
+        .hero {
+            position: relative;
+            background-image: url("https://png.pngtree.com/background/20230827/original/pngtree-vibrant-cinema-experience-with-3d-glasses-popcorn-and-clapperboard-background-picture-image_4846477.jpg");
+            background-size: cover;
+            background-position: center;
+            height: 70vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: #fff;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero h1 {
+            font-size: 50px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .hero p {
+            font-size: 18px;
+            margin-bottom: 30px;
+        }
+
+        .hero a {
+            display: inline-block;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: #fff;
+            background: #f44336;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+
+        .hero a:hover {
+            background: #d32f2f;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+
+        .movies {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .movie-card {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            transition: transform 0.3s;
+        }
+
+        .movie-card img {
+            max-width: 100%;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .movie-card h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+            color: #f44336;
+        }
+
+        .movie-card p {
+            font-size: 14px;
+            color: #aaa;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            background: #000;
+            color: #aaa;
+            margin-top: 20px;
+        }
+
+        footer a {
+            color: #f44336;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">MovieFlix</div>
+        <nav>
+            <a href="/admin">Admin</a>
+            <a href="#" class="scroll-link" data-target="#movies-section">Movies</a>
+            <a href="register">Register</a>
+            <a href="login">Login</a>
+        </nav>
+    </header>
+
+    <div class="hero">
+        <div class="hero-content">
+            <h1>Welcome to MovieFlix</h1>
+            <p>Book tickets for the latest movies and events near you!</p>
+            <a href="#" class="scroll-link" data-target="#movies-section">Explore Now</a>
+        </div>
+    </div>
+
+    <div class="container" id="movies-section">
+        <h2>Now Showing</h2>
+        <div class="movies">
+            <div class="movie-card">
+                <img src="{% static 'img/coolie.jpeg' %}" alt="Movie Poster">
+                <h3>COOLIE</h3>
+                <p>A thrilling action you can’t miss from LCU Universe.</p>
+            </div>
+            <div class="movie-card">
+                <img src="{% static 'img/l2.jpg' %}" alt="Movie Poster">
+                <h3>L2:Empuraan</h3>
+                <p>Experience the mohanlal action on the big screen.</p>
+            </div>
+            <div class="movie-card">
+                <img src="{% static 'img/king.jpg' %}" alt="Movie Poster">
+                <h3>KING</h3>
+                <p>Witness the power of greatest superstar in the world.</p>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 MovieFlix. All Rights Reserved.</p>
+    </footer>
+
+    <script>
+        // JavaScript for Smooth Scrolling
+        document.querySelectorAll('.scroll-link').forEach(link => {
+            link.addEventListener('click', function (e) {
+                e.preventDefault(); // Prevent default link behavior
+                const target = document.querySelector(this.getAttribute('data-target'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth', // Smooth scrolling
+                        block: 'start' // Align to the top
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
