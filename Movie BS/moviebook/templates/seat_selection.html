@@ -94,6 +94,12 @@
             margin-top: 20px;
             transition: 0.3s;
         }
+        .seat.locked {
+            background-color: #f1c40f;  /* Yellow to show TEMPORARILY LOCKED */
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
 
         .btn:hover {
             background: #b71c1c;
@@ -135,7 +141,12 @@
 
         <div class="seat-grid">
             {% for seat in seats %}
-                <div class="seat {% if seat.is_booked %}booked{% else %}available{% endif %}"
+                <div class="seat 
+     {% if seat.is_booked %}booked
+     {% elif seat.is_locked and seat.locked_by != username %}locked
+     {% elif seat.is_locked and seat.locked_by == username %}selected
+     {% else %}available{% endif %}"
+
                      id="seat-{{ seat.id }}"
                      data-seat-id="{{ seat.id }}"
                      data-seat-label="{{ seat.row }}{{ seat.number }}"
@@ -173,7 +184,7 @@
         }
 
         function selectSeat(element) {
-            if (!element.classList.contains("booked")) {
+            if (!element.classList.contains("booked") && !element.classList.contains("locked")) {
                 const seatId = element.dataset.seatId;  // Store seat ID instead of label
                 const seatPrice = parseInt(element.dataset.seatPrice);
 
@@ -210,6 +221,9 @@
                 alert("Please select at least one seat.");
             }
         }
+        window.addEventListener("beforeunload", function () {
+           navigator.sendBeacon("/release-lock/");
+        });
     </script>
 </body>
 </html>

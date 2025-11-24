@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib import admin
 from django.contrib.auth.models import User
+from django.utils import timezone
+from datetime import timedelta
 
 # Registration Model
 class Registration(models.Model):
@@ -104,20 +106,40 @@ class Showtime(models.Model):
 
 class Seat(models.Model):
     showtime = models.ForeignKey(Showtime, on_delete=models.CASCADE)
-    row = models.CharField(max_length=1)  # A, B, C, D, E
-    number = models.IntegerField()  # 1-15
+    row = models.CharField(max_length=1)
+    number = models.IntegerField()
     is_booked = models.BooleanField(default=False)
     booked_by = models.ForeignKey(Registration, on_delete=models.SET_NULL, null=True, blank=True)
-    price = models.DecimalField(max_digits=6, decimal_places=2, default=100)  # Default price
+    price = models.DecimalField(max_digits=6, decimal_places=2, default=100)
+    is_locked = models.BooleanField(default=False)
+    locked_by = models.ForeignKey(Registration, related_name="locked_seats", on_delete=models.SET_NULL, null=True, blank=True)
+    lock_expiry = models.DateTimeField(null=True, blank=True)
 
     def book_seat(self, user):
-        """Marks seat as booked by a user."""
         self.is_booked = True
         self.booked_by = user
+        self.is_locked = False  # remove lock if booking confirmed
+        self.locked_by = None
+        self.lock_expiry = None
         self.save()
 
+    def lock_seat(self, user):
+        """Temporary lock for checkout."""
+        self.is_locked = True
+        self.locked_by = user
+        self.lock_expiry = timezone.now() + timedelta(minutes=5)
+        self.save()
+
+    def unlock_expired(self):
+        """Release seat if user waited too long."""
+        if self.is_locked and self.lock_expiry and self.lock_expiry < timezone.now():
+            self.is_locked = False
+            self.locked_by = None
+            self.lock_expiry = None
+            self.save()
+
     def __str__(self):
-        return f"Seat {self.row}{self.number} - ₹{self.price} ({'Booked' if self.is_booked else 'Available'})"
+        return f"{self.row}{self.number} - {'Booked' if self.is_booked else 'Locked' if self.is_locked else 'Available'}"
     
 
 

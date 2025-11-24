@@ -128,6 +128,7 @@ def showtime_selection(request, movie_id):
 
 def seat_selection(request, showtime_id):
     showtime = get_object_or_404(Showtime, id=showtime_id)
+    request.session['selected_seats'] = [] 
     seats = Seat.objects.filter(showtime=showtime).order_by('row', 'number')
     user_id = request.session.get('user_id')
 
@@ -135,43 +136,59 @@ def seat_selection(request, showtime_id):
         messages.error(request, "You must be logged in to book seats.")
         return redirect('login')
 
+    user = Registration.objects.get(id=user_id)
+
+    # 🔥 Auto-release expired seats before showing UI
+    for seat in seats:
+        seat.unlock_expired()
+
     if request.method == "POST":
-        selected_seat_ids_str = request.POST.get("selected_seats", "")  # e.g., "1,2,3"
+        selected_seat_ids_str = request.POST.get("selected_seats", "")
         selected_seat_ids = selected_seat_ids_str.split(",") if selected_seat_ids_str else []
 
-        selected_seats = Seat.objects.filter(id__in=selected_seat_ids, showtime=showtime, is_booked=False)
+        selected_seats = []
+        for seat_id in selected_seat_ids:
+            seat = Seat.objects.get(id=seat_id, showtime=showtime)
 
-        if selected_seats.count() == len(selected_seat_ids):
-            # Store seat labels (for UI) and IDs (for booking) in session
-            selected_seat_labels = [f"{seat.row}{seat.number}" for seat in selected_seats]
-            request.session['selected_seats'] = selected_seat_labels
-            request.session['selected_seat_ids'] = selected_seat_ids  # Save for later booking
+            # ❌ If seat is locked by someone else → reject selection
+            if seat.is_locked and seat.locked_by != user:
+                messages.error(request, f"Seat {seat.row}{seat.number} is temporarily held by another user. Try again later.")
+                return redirect(request.path)
 
-            # Calculate and store seat total
-            total_price = float(sum(seat.price for seat in selected_seats))
-            request.session['seat_price'] = total_price
-            request.session['showtime_id'] = showtime.id
-            request.session['movie_id'] = showtime.movie.id
-            request.session['theatre_id'] = showtime.theatre.id
+            # ❌ Already booked → reject
+            if seat.is_booked:
+                messages.error(request, f"Seat {seat.row}{seat.number} is already booked.")
+                return redirect(request.path)
 
-            messages.success(request, "Seats selected successfully! Proceed to snacks.")
-            return redirect('/select-snacks/')
-        else:
-            messages.error(request, "Some selected seats are no longer available. Please reselect.")
-    else:
-        messages.error(request, "Please select at least one seat.")
+            selected_seats.append(seat)
 
-    context = {
+        # ✅ Lock seats for this user for 5 min
+        for seat in selected_seats:
+            seat.lock_seat(user)
+
+        # Store in session
+        selected_seat_labels = [f"{seat.row}{seat.number}" for seat in selected_seats]
+        request.session['selected_seats_ids'] = selected_seat_ids
+        request.session['selected_seat_labels'] = selected_seat_labels
+        request.session['seat_price'] = float(sum(seat.price for seat in selected_seats))
+        request.session['showtime_id'] = showtime.id
+        request.session['movie_id'] = showtime.movie.id
+        request.session['theatre_id'] = showtime.theatre.id
+
+        messages.success(request, "Seats temporarily locked. Complete booking in the next 5 minutes.")
+        return redirect('/select-snacks/')
+
+    return render(request, "seat_selection.html", {
         "showtime": showtime,
         "seats": seats,
         "seat_range": range(1, 11),
         "username": request.session.get('username'),
         "selected_seats": request.session.get('selected_seats', []),
-    }
-    return render(request, "seat_selection.html", context)
+    })
 
 
 def select_snacks(request):
+    showtime_id = request.session.get("showtime_id") 
     snacks = Snack.objects.all()
     selected_seat_labels = request.session.get('selected_seats', [])
     total_seat_price = Decimal(request.session.get('seat_price', 0))
@@ -198,6 +215,7 @@ def select_snacks(request):
         'snacks': snacks,
         'selected_seats': selected_seat_labels,
         'seat_price': float(total_seat_price),
+        "showtime_id": showtime_id, 
     })
 
 def payment_page(request):
@@ -293,6 +311,9 @@ def payment_success(request):
                 
                 for seat in seats:
                     seat.is_booked = True
+                    seat.locked_by = None   # 🔥 remove lock
+                    seat.is_locked = False
+                    seat.lock_expiry = None
                     seat.booked_by = user
                     seat.save()
 
@@ -427,4 +448,27 @@ def transfer_ticket(request, booking_id):
     return redirect('profile_view')
 
 
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
 
+@csrf_exempt
+def release_lock(request):
+    user_id = request.session.get("user_id")
+
+    if not user_id:
+        return JsonResponse({"status": "no user"})
+
+    # Get all seats locked by that user
+    seats = Seat.objects.filter(locked_by_id=user_id, is_locked=True)
+
+    for seat in seats:
+        seat.is_locked = False
+        seat.locked_by = None
+        seat.locked_at = None
+        seat.save()
+
+    # Clear seat session
+    request.session["selected_seat_ids"] = []
+    request.session["selected_seats"] = []
+
+    return JsonResponse({"status": "released"})

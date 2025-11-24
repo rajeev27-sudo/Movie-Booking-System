@@ -7,123 +7,137 @@
     <title>Select Snacks & Drinks</title>
     <link rel="stylesheet" href="{% static 'css/style1.css' %}">
     <style>
-        /* Custom Fonts */
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
 
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: url('{% static "img/bg.jpeg" %}') no-repeat center center/cover;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            backdrop-filter: blur(5px);
-        }
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), 
+                url('{% static "img/bg.jpeg" %}') no-repeat center center/cover;
+    height: 100vh;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
 
-        .container {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            width: 450px;
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
+.container {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(12px);
+    border-radius: 15px;
+    padding: 30px;
+    width: 450px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 4px 30px rgba(0,0,0,0.4);
+}
 
-        h1 {
-            font-size: 26px;
-            color: #fff;
-            text-transform: uppercase;
-            font-weight: 600;
-        }
+h1 {
+    color: white;
+    font-size: 28px;
+    margin-bottom: 12px;
+    font-weight: 600;
+}
 
-        h2, p {
-            color: #f8f8f8;
-        }
+h2, p {
+    color: #fff;
+    font-size: 18px;
+}
 
-        .item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: rgba(255, 255, 255, 0.8);
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s ease-in-out;
-        }
+.item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(255, 255, 255, 0.85);
+    padding: 12px;
+    border-radius: 10px;
+    margin: 10px 0;
+    transition: 0.2s;
+}
 
-        .item:hover {
-            transform: scale(1.05);
-        }
+.item:hover {
+    transform: scale(1.04);
+}
 
-        .item img {
-            width: 60px;
-            height: 60px;
-            border-radius: 8px;
-            margin-right: 15px;
-        }
+.item img {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+}
 
-        .item label {
-            flex-grow: 1;
-            text-align: left;
-            font-size: 16px;
-            font-weight: 500;
-        }
+.item label {
+    flex-grow: 1;
+    text-align: left;
+    font-size: 16px;
+    font-weight: 500;
+    color: #000;
+}
 
-        .quantity {
-            width: 50px;
-            padding: 5px;
-            font-size: 16px;
-            text-align: center;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-        }
+.quantity {
+    width: 50px;
+    font-size: 16px;
+    border-radius: 5px;
+    text-align: center;
+    padding: 5px;
+}
 
-        .btn {
-            padding: 14px 25px;
-            background: linear-gradient(45deg, #ff416c, #ff4b2b);
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-size: 18px;
-            border-radius: 8px;
-            width: 100%;
-            margin-top: 20px;
-            transition: 0.3s ease-in-out;
-            font-weight: 600;
-        }
+.btn {
+    width: 100%;
+    margin-top: 20px;
+    padding: 14px;
+    border-radius: 10px;
+    font-size: 18px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    background: #ff4b2b;
+    color: white;
+    transition: 0.3s;
+}
 
-        .btn:hover {
-            transform: scale(1.05);
-            background: linear-gradient(45deg, #ff4b2b, #ff416c);
-        }
-    </style>
+.btn:hover {
+    background: #ff6e40;
+    transform: scale(1.05);
+}
+
+/* BACK BUTTON */
+.back-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    padding: 10px 18px;
+    background: rgba(255,255,255,0.15);
+    color: white;
+    border: 1px solid white;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: 0.3s;
+}
+
+.back-btn:hover {
+    background: rgba(255,255,255,0.4);
+}
+</style>
+
 </head>
 <body>
+
+    <button class="back-btn" onclick="goBack()">⬅ Back</button>
+
     <div class="container">
         <h1>Select Snacks & Drinks</h1>
         <h2>Seats Selected: <span id="seat-details">{{ selected_seats }}</span></h2>
         <p><strong>Seat Price: ₹<span id="seat-price">{{ seat_price }}</span></strong></p>
 
         <form id="snacks-form" method="post" action="{% url 'select_snacks' %}">
-
-
             {% csrf_token %}
-            <input type="hidden" name="movie_id" value="{{ movie.id }}">
-            <input type="hidden" name="selected_seats" id="selected_seats" value="{{ selected_seats }}">
             <input type="hidden" id="total_price" name="total_price" value="{{ seat_price }}">
 
             {% for snack in snacks %}
             <div class="item">
                 <img src="{{ snack.image.url }}" alt="{{ snack.name }}">
-                <label for="snack-{{ forloop.counter }}">
-                    {{ snack.name }} - ₹{{ snack.price }}
-                </label>
-                <input type="number" id="snack-{{ forloop.counter }}" name="snacks_{{ snack.id }}" class="quantity" min="0" value="0" data-price="{{ snack.price }}">
+                <label>{{ snack.name }} - ₹{{ snack.price }}</label>
+                <input type="number" name="snacks_{{ snack.id }}" class="quantity" min="0" value="0" data-price="{{ snack.price }}">
             </div>
             {% endfor %}
 
@@ -134,19 +148,15 @@
     </div>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            updateTotal(); // Ensure total is updated when the page loads
+        function goBack() {
+    fetch("/release-lock/", { method: "POST" })
+        .finally(() => window.location.href = "/movie/{{ showtime_id }}/seats/");
+}
 
+        document.addEventListener("DOMContentLoaded", function () {
+            updateTotal();
             document.querySelectorAll(".quantity").forEach(input => {
                 input.addEventListener("input", updateTotal);
-            });
-
-            document.getElementById("snacks-form").addEventListener("submit", function (event) {
-                let selectedSeats = document.getElementById("seat-details").innerText.trim();
-                if (!selectedSeats || selectedSeats === "[]") {
-                    alert("Please select at least one seat before proceeding to payment.");
-                    event.preventDefault();
-                }
             });
         });
 
@@ -155,14 +165,17 @@
             let total = seatPrice;
 
             document.querySelectorAll(".quantity").forEach(input => {
-                let price = parseFloat(input.getAttribute("data-price")) || 0;
-                let quantity = parseInt(input.value) || 0;
-                total += price * quantity;
+                total += (parseFloat(input.dataset.price) || 0) * (parseInt(input.value) || 0);
             });
 
             document.getElementById("total-amount").innerText = total.toFixed(2);
             document.getElementById("total_price").value = total;
         }
+
+        // Auto seat release if user closes tab or reloads
+        window.addEventListener("beforeunload", function () {
+            navigator.sendBeacon("/release-lock/");
+        });
     </script>
 </body>
 </html>

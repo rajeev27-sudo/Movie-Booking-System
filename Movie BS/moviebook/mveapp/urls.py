@@ -21,6 +21,7 @@ urlpatterns = [
     path('cancel-booking/<int:booking_id>/', views.cancel_booking, name='cancel_booking'),
     path('transfer/<int:booking_id>/', views.transfer_ticket, name='transfer_ticket'),
 
+    path("release-lock/", views.release_lock, name="release-lock"),
 
 
 ]
