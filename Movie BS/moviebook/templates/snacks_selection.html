@@ -172,10 +172,7 @@ h2, p {
             document.getElementById("total_price").value = total;
         }
 
-        // Auto seat release if user closes tab or reloads
-        window.addEventListener("beforeunload", function () {
-            navigator.sendBeacon("/release-lock/");
-        });
+        
     </script>
 </body>
 </html>

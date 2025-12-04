@@ -9,6 +9,9 @@ import razorpay # type: ignore
 from django.conf import settings
 import json
 from django.views.decorators.csrf import csrf_exempt
+from django.urls import reverse
+from django.utils.timezone import now
+from datetime import timedelta
 
 
 def index(request):
@@ -128,7 +131,6 @@ def showtime_selection(request, movie_id):
 
 def seat_selection(request, showtime_id):
     showtime = get_object_or_404(Showtime, id=showtime_id)
-    request.session['selected_seats'] = [] 
     seats = Seat.objects.filter(showtime=showtime).order_by('row', 'number')
     user_id = request.session.get('user_id')
 
@@ -162,9 +164,12 @@ def seat_selection(request, showtime_id):
 
             selected_seats.append(seat)
 
-        # ✅ Lock seats for this user for 5 min
+        # ✅ Lock seats for this user for 3 minutes
         for seat in selected_seats:
-            seat.lock_seat(user)
+            seat.is_locked = True
+            seat.locked_by = user
+            seat.lock_expiry = now() + timedelta(minutes=3)
+            seat.save()
 
         # Store in session
         selected_seat_labels = [f"{seat.row}{seat.number}" for seat in selected_seats]
@@ -175,7 +180,7 @@ def seat_selection(request, showtime_id):
         request.session['movie_id'] = showtime.movie.id
         request.session['theatre_id'] = showtime.theatre.id
 
-        messages.success(request, "Seats temporarily locked. Complete booking in the next 5 minutes.")
+        messages.success(request, "Seats temporarily locked. Complete booking in the next 3 minutes.")
         return redirect('/select-snacks/')
 
     return render(request, "seat_selection.html", {
@@ -190,7 +195,7 @@ def seat_selection(request, showtime_id):
 def select_snacks(request):
     showtime_id = request.session.get("showtime_id") 
     snacks = Snack.objects.all()
-    selected_seat_labels = request.session.get('selected_seats', [])
+    selected_seat_labels = request.session.get('selected_seat_labels', [])  # Fixed key
     total_seat_price = Decimal(request.session.get('seat_price', 0))
 
     if request.method == "POST":
@@ -213,7 +218,7 @@ def select_snacks(request):
 
     return render(request, 'snacks_selection.html', {
         'snacks': snacks,
-        'selected_seats': selected_seat_labels,
+        'selected_seats': selected_seat_labels,  # Fixed key
         'seat_price': float(total_seat_price),
         "showtime_id": showtime_id, 
     })
@@ -224,7 +229,7 @@ def payment_page(request):
         return redirect("login")
 
     # Session values
-    selected_seat_labels = request.session.get("selected_seats", [])
+    selected_seat_labels = request.session.get("selected_seat_labels", [])  # Fixed key
     selected_snacks_data = request.session.get("selected_snacks_data", {})
     seat_price = Decimal(request.session.get("seat_price", 0))
     snacks_total = Decimal(request.session.get("snacks_total", 0))
@@ -248,40 +253,43 @@ def payment_page(request):
         for snack in selected_snacks:
             qty = int(selected_snacks_data.get(str(snack.id), 0))
             if qty > 0:
-                subtotal = snack.price * qty
                 snacks_with_qty.append({
-                    "snack": snack,
-                    "quantity": qty,
-                    "subtotal": subtotal
+                    'snack': snack,
+                    'quantity': qty,
+                    'subtotal': snack.price * qty
                 })
 
-    # Price calculations
-    subtotal = seat_price + snacks_total
-    gst_amount = subtotal * Decimal('0.18')
-    final_amount = subtotal + gst_amount
-    request.session["total_price"] = float(final_amount)
+    # Calculate total price and GST
+    total_price = seat_price + snacks_total
+    gst_rate = Decimal('0.18')  # 18% GST
+    gst_amount = total_price * gst_rate
+    total_price_with_gst = total_price + gst_amount
 
-    # Razorpay order
     client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+
     razorpay_order = client.order.create({
-        "amount": int(final_amount * 100),  # Convert to paise
+        "amount": int(total_price_with_gst * 100),  # convert to paise
         "currency": "INR",
-        "payment_capture": "1"
+        "payment_capture": 1
     })
 
+    razorpay_order_id = razorpay_order["id"]
+
+    
     return render(request, "payment.html", {
-        "user": user,
-        "movie": movie,
-        "theatre": theatre,
-        "showtime": showtime,
-        "selected_seats": selected_seat_labels,
+        "selected_seats": selected_seat_labels,  # Fixed key
         "snacks_with_qty": snacks_with_qty,
         "seat_price": float(seat_price),
         "snacks_total": float(snacks_total),
-        "gst_amount": round(gst_amount, 2),
-        "final_amount": round(final_amount, 2),
-        "razorpay_order_id": razorpay_order["id"],
+        "total_price": float(total_price),
+        "gst_amount": float(gst_amount),
+        "total_price_with_gst": float(total_price_with_gst),
+        "movie": movie,
+        "theatre": theatre,
+        "showtime": showtime,
+        "razorpay_order_id": razorpay_order_id,
         "razorpay_key": settings.RAZORPAY_KEY_ID,
+        "final_amount": float(total_price_with_gst),
     })
 
 
@@ -293,58 +301,84 @@ def payment_success(request):
         if payment_id:
             try:
                 user_id = request.session.get("user_id")
+                if not user_id:
+                    return HttpResponse("User not logged in.", status=403)
                 user = Registration.objects.get(id=user_id)
-
-                showtime_id = request.session.get('showtime_id')  # Get showtime_id from session
+                showtime_id = request.session.get('showtime_id')
+                if not showtime_id:
+                    return HttpResponse("Showtime missing from session.", status=400)
                 showtime = get_object_or_404(Showtime, id=showtime_id)
 
-                # Step 1: Get selected seats, CORRECTLY FILTERED by showtime
-                selected_seat_labels = request.session.get("selected_seats", [])
-                seat_queries = [(seat[0], int(seat[1:])) for seat in selected_seat_labels]
-                rows = [row for row, _ in seat_queries]
-                numbers = [num for _, num in seat_queries]
-                seats = Seat.objects.filter(row__in=rows, number__in=numbers, showtime=showtime)  #  Include showtime in the filter!
+                selected_seat_labels = request.session.get("selected_seat_labels", [])
 
-                # Ensure that the number of selected seats matches the number of seats fetched
+                if not selected_seat_labels:
+                    return HttpResponse("No seats found in session.", status=400)
+                rows = []
+                numbers = []
+
+                for label in selected_seat_labels:
+                    row = ''.join([c for c in label if c.isalpha()])
+                    num = ''.join([c for c in label if c.isdigit()])
+
+                    if not row or not num:
+                        return HttpResponse(f"Invalid seat format: {label}", status=400)
+
+                    rows.append(row)
+                    numbers.append(int(num))
+                seats = Seat.objects.filter(
+                    showtime=showtime,
+                    row__in=rows,
+                    number__in=numbers
+                )
+
                 if seats.count() != len(selected_seat_labels):
-                    return HttpResponse("Error: Incorrect number of seats fetched.  Possible data inconsistency.", status=500)
-                
+                    return HttpResponse("Seat mismatch! Data inconsistency.", status=500)
                 for seat in seats:
-                    seat.is_booked = True
-                    seat.locked_by = None   # 🔥 remove lock
-                    seat.is_locked = False
-                    seat.lock_expiry = None
-                    seat.booked_by = user
+                    seat.is_booked = True         
+                    seat.is_locked = False         
+                    seat.locked_by = None         
+                    seat.lock_expiry = None        
+                    seat.booked_by = user         
                     seat.save()
 
+                total_price = request.session.get("total_price", 0)
 
-
-                # Step 3: Create BookingDetail
                 booking = BookingDetail.objects.create(
                     user=user,
                     movie=showtime.movie,
                     theater=showtime.theatre,
                     show_time=showtime,
                     payment_id=payment_id,
-                    total_price=request.session.get("total_price", 0),
+                    total_price=total_price,
                     status="Booked",
                 )
+
                 booking.seats.set(seats)
 
-                # Step 4: Save selected snacks
                 selected_snacks_data = request.session.get("selected_snacks_data", {})
-                for snack_id_str, quantity in selected_snacks_data.items():
+                for snack_id_str, qty in selected_snacks_data.items():
                     snack = get_object_or_404(Snack, id=int(snack_id_str))
                     SelectedSnack.objects.create(
                         booking=booking,
                         snack=snack,
-                        quantity=int(quantity)
+                        quantity=int(qty)
                     )
+                # -----------------------------
+                keys_to_clear = [
+                    'selected_seat_labels',
+                    'selected_seats',
+                    'selected_seat_ids',
+                    'selected_snacks_data',
+                    'snacks_total',
+                    'seat_price',
+                    'showtime_id',
+                    'movie_id',
+                    'theatre_id',
+                    'total_price',
+                ]
 
-                # Step 5: Clear session data
-                request.session.pop("selected_seats", None)
-                request.session.pop("selected_snacks_data", None)
-                request.session.pop("total_price", None)
+                for key in keys_to_clear:
+                    request.session.pop(key, None)
 
                 messages.success(request, "Payment successful! Your ticket is booked.")
                 return redirect("profile_view")
@@ -354,6 +388,7 @@ def payment_success(request):
 
     messages.error(request, "Payment verification failed. Try again.")
     return redirect("payment_page")
+
 
 
 
@@ -370,7 +405,7 @@ def profile_view(request):
         'movie', 'theater', 'show_time'
     ).prefetch_related('seats', 'selected_snacks__snack').order_by('-booking_time')
 
-    #  ⭐  CORRECTED SECTION: Filter seats by showtime  ⭐
+
     for booking in bookings:
         booking.booked_seats = booking.seats.filter(showtime=booking.show_time)
 
@@ -389,11 +424,11 @@ def cancel_booking(request, booking_id):
     user = get_object_or_404(Registration, id=user_id)
     booking = get_object_or_404(BookingDetail, id=booking_id, user=user)
 
-    # Mark the booking as cancelled
+    
     booking.status = 'Cancelled'
     booking.save()
 
-    # Unbook the seats and remove booked_by reference
+    
     for seat in booking.seats.all():
         seat.is_booked = False
         seat.booked_by = None
@@ -402,7 +437,7 @@ def cancel_booking(request, booking_id):
     messages.success(request, "Booking successfully cancelled.")
     return redirect('profile_view')
 
-from django.db.models import Q  # ✅ Add this!
+from django.db.models import Q 
 
 from django.utils import timezone
 
@@ -432,7 +467,7 @@ def transfer_ticket(request, booking_id):
 
         # Perform transfer
         booking.user = recipient
-        booking.transferred_to = recipient #assign Registration
+        booking.transferred_to = recipient 
         booking.transfer_time = timezone.now()
         booking.status = 'Transferred'
         booking.save()
@@ -467,8 +502,13 @@ def release_lock(request):
         seat.locked_at = None
         seat.save()
 
-    # Clear seat session
-    request.session["selected_seat_ids"] = []
-    request.session["selected_seats"] = []
+    # Clear related session keys used during selection/payment so UI reflects release
+    keys_to_clear = [
+        'selected_seats_ids', 'selected_seat_ids', 'selected_seat_labels',
+        'selected_seats', 'selected_seat_ids', 'selected_snacks_data',
+        'snacks_total', 'seat_price', 'showtime_id', 'movie_id', 'theatre_id'
+    ]
+    for k in keys_to_clear:
+        request.session.pop(k, None)
 
     return JsonResponse({"status": "released"})

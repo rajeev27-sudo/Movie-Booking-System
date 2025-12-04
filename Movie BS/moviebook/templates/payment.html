@@ -158,6 +158,32 @@
     </style>
 </head>
 <body>
+    <style>
+        .cancel-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 999;
+            background: transparent;
+            color: #e0e0e0;
+            border: 1px solid rgba(255,255,255,0.08);
+            padding: 10px 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+            backdrop-filter: blur(4px);
+        }
+        .cancel-btn:hover {
+            background: rgba(255,255,255,0.02);
+            transform: translateY(-1px);
+        }
+    </style>
+
+    <button class="cancel-btn" onclick="goBack()"><i class="fas fa-times"></i> Cancel</button>
 
 <div class="payment-card">
     <div class="payment-header">
@@ -191,7 +217,7 @@
         <p><i class="fas fa-ticket-alt"></i> Seat Total: <span>₹{{ seat_price|floatformat:2 }}</span></p>
         <p><i class="fas fa-pizza-slice"></i> Snacks Total: <span>₹{{ snacks_total|floatformat:2 }}</span></p>
         <p><i class="fas fa-percent"></i> GST (18%): <span>₹{{ gst_amount|floatformat:2 }}</span></p>
-        <p class="total-amount">Total: ₹{{ final_amount|floatformat:2 }}</p>
+        <p class="total-amount">Total: ₹{{ total_price_with_gst|floatformat:2 }}</p>
     </div>
 
     <button type="button" class="payment-button" id="pay-button">Proceed to Payment</button>
@@ -199,13 +225,18 @@
 </div>
 
 <script>
+    function goBack() {
+        if (!confirm('Cancel booking and release held seats?')) return;
+        fetch("/release-lock/", { method: "POST" })
+            .finally(() => window.location.href = "{% url 'seat_selection' showtime.id %}");
+    }
     document.getElementById("pay-button").onclick = function () {
         let confirmation = confirm("Are you sure you want to proceed with the payment?");
         if (!confirmation) return;
 
         var options = {
             "key": "{{ razorpay_key }}",
-            "amount": "{{ final_amount|floatformat:0 }}00",
+            "amount": "{{ total_price_with_gst|floatformat:0 }}00",
             "currency": "INR",
             "name": "Movie Booking",
             "description": "Movie Ticket Payment",
